@@ -1,0 +1,47 @@
+variables:
+  REF_NAME: $CI_COMMIT_REF_NAME
+  IMAGE_VERSION: $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
+
+stages:
+ - build
+ - test
+ - deploy
+ - cleanup
+
+### Builds ###
+
+build:web:
+  stage: build
+  script:
+    - make build-web push-web
+  tags: [ io, docker-engine-v17.05 ]
+
+build:app:
+  stage: build
+  script:
+    - make build-app push-app
+  tags: [ io, docker-engine-v17.05 ]
+
+build:latest:
+  stage: build
+  only: [ master ]
+  script:
+    - IMAGE_VERSION=latest make build push
+  tags: [ io, docker-engine-v17.05 ]
+
+### Tests
+
+.test_job: &test_template
+  stage: test
+  variables:
+    COMPOSE_PROJECT_NAME: test-$CI_JOB_ID-$CI_COMMIT_SHA
+  before_script:
+    - make up
+  after_script:
+    - make down &> /dev/null
+  tags: [ io, docker-engine-v17.05 ]
+  except: [ /^.*-perf$/, tags ]
+
+# ================= Deploy =================
+
+### Cleanup
