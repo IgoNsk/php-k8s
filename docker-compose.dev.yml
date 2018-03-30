@@ -1,0 +1,47 @@
+version: '2'
+
+volumes:
+  xhprof-data:
+    driver: local
+
+services:
+  pod:
+    image: gcr.io/google_containers/pause-amd64:3.0
+    ports:
+      - '80:80'
+    dns:
+      - 8.8.8.8
+
+  web:
+    build:
+      context: .
+      dockerfile: build/nginx/Dockerfile
+    network_mode: 'service:pod'
+    env_file:
+      - .env-base
+    volumes:
+      - ./public:/var/www/html
+
+  app:
+    build:
+      context: .
+      dockerfile: build/php/Dockerfile-dev
+      args:
+        - BASE_IMAGE_PATH=${APP_BASE_IMAGE_PATH}
+        - BASE_IMAGE_VERSION=${APP_BASE_IMAGE_VERSION}
+    network_mode: 'service:pod'
+    env_file:
+      - .env-base
+      - .env
+    volumes:
+      - ./build/utils/dockerize-linux-amd64-v0.6.0:/usr/local/bin/dockerize
+      - ./src/:/var/www/html
+      - ./src/vendor:/var/www/html/vendor
+      - xhprof-data:/tmp
+
+  xhprof:
+    image: wpalmer/xhprof
+    volumes:
+      - xhprof-data:/tmp
+    ports:
+      - '8081:8081'
