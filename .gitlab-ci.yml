@@ -13,12 +13,14 @@ stages:
 build:web:
   stage: build
   script:
+    - docker login -u $CI_JOB_USER -p $CI_JOB_TOKEN registry.hub.docker.com
     - make build-web push-web
   tags: [ io, docker-engine-v17.05 ]
 
 build:app:
   stage: build
   script:
+    - docker login -u $CI_JOB_USER -p $CI_JOB_TOKEN registry.hub.docker.com
     - make build-app push-app
   tags: [ io, docker-engine-v17.05 ]
 
@@ -26,6 +28,7 @@ build:latest:
   stage: build
   only: [ master ]
   script:
+    - docker login -u $CI_JOB_USER -p $CI_JOB_TOKEN registry.hub.docker.com
     - IMAGE_VERSION=latest make build push
   tags: [ io, docker-engine-v17.05 ]
 
