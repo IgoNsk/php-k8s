@@ -9,7 +9,7 @@ APP_BASE_IMAGE_VERSION = 1519957637
 APP_BASE_IMAGE_PATH = ${REGISTRY_PATH}/${REGISTRY_NAMESPACE}/${APP_IMAGE_NAME}-base
 WEB_IMAGE_PATH      = ${REGISTRY_PATH}/${REGISTRY_NAMESPACE}/${WEB_IMAGE_NAME}
 
-export IMAGE_VERSION APP_BASE_IMAGE_VERSION WEB_IMAGE_PATH APP_IMAGE_PATH
+export IMAGE_VERSION APP_BASE_IMAGE_PATH APP_BASE_IMAGE_VERSION WEB_IMAGE_PATH APP_IMAGE_PATH
 SHELL := env PATH=$(PATH) /bin/bash
 
 .PHONY: dev-init
@@ -74,12 +74,12 @@ push-app-base:
 
 .PHONY: build-app
 build-app:
-	$(info target: $@, IMAGE_VERSION: $(IMAGE_VERSION))
+	$(info target: $@, IMAGE: ${APP_IMAGE_PATH}:$(IMAGE_VERSION))
 	docker-compose build app
 
 .PHONY: push-app
 push-app:
-	$(info target: $@, IMAGE_VERSION: $(IMAGE_VERSION))
+	$(info target: $@, IMAGE: ${APP_IMAGE_PATH}:$(IMAGE_VERSION))
 	docker-compose push app
 
 .PHONY: up

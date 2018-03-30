@@ -23,6 +23,7 @@ services:
       context: .
       dockerfile: build/php/Dockerfile
       args:
+        - BASE_IMAGE_PATH=${APP_BASE_IMAGE_PATH}
         - BASE_IMAGE_VERSION=${APP_BASE_IMAGE_VERSION}
     network_mode: 'service:pod'
     volumes:

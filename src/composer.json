@@ -1,60 +1,66 @@
 {
-  "name": "2gis/php-k8s",
-  "type": "project",
-  "description": "Example of PHP web application for Kubernetes",
-  "minimum-stability": "stable",
-  "license": "proprietary",
-  "authors": [
-    {
-      "name": "Igor Yatsevich",
-      "email": "i.yatsevich@2gis.ru",
-      "role": "Developer"
-    }
-  ],
-  "require": {
-    "php": ">=7.1.8",
-    "ext-curl": "*",
-    "ext-intl": "*",
-    "ext-pdo": "*",
-    "ext-pdo_pgsql": "*",
-    "yiisoft/yii2-redis": "~2.0.0",
-    "yiisoft/yii2": "2.0.15",
-    "yiisoft/yii2-composer": "~2.0.4",
-    "graylog2/gelf-php": "^1.5",
-    "ugc/KpiReports": "dev-master",
-    "mso/idna-convert": "1.1.0",
-    "cbednarski/Pulse": "1.0.*",
-    "codemix/yii2-streamlog": "^1.2",
-    "psr/log": "^1.0",
-    "kohkimakimoto/workerphp": "^0.6.0"
-  },
-  "require-dev": {
-  },
-  "provide": {
-    "bower-asset/jquery": "*",
-    "bower-asset/jquery.inputmask": "*",
-    "bower-asset/punycode": "*",
-    "bower-asset/yii2-pjax": "*"
-  },
-  "scripts": {
-    "post-create-project-cmd": [
-      "yii\\composer\\Installer::setPermission"
-    ]
-  },
-  "extra": {
-    "asset-installer-paths": {
-      "npm-asset-library": "vendor/npm",
-      "bower-asset-library": "vendor/bower"
+    "name": "2gis/php-k8s",
+    "type": "project",
+    "description": "Example of PHP web application for Kubernetes",
+    "minimum-stability": "stable",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Igor Yatsevich",
+            "email": "i.yatsevich@2gis.ru",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "yiisoft/yii2": "~2.0.14",
+        "yiisoft/yii2-bootstrap": "~2.0.0",
+        "yiisoft/yii2-swiftmailer": "~2.0.0"
     },
-    "writable": [
-      "runtime",
-      "runtime/logs"
-    ],
-    "executable": [
-      "yii"
-    ],
-    "config": [
-      "config/web.php"
+    "require-dev": {
+        "yiisoft/yii2-debug": "~2.0.0",
+        "yiisoft/yii2-gii": "~2.0.0",
+        "yiisoft/yii2-faker": "~2.0.0",
+
+        "codeception/base": "^2.2.3",
+        "codeception/verify": "~0.3.1",
+        "codeception/specify": "~0.4.3"
+    },
+    "config": {
+        "process-timeout": 1800,
+        "fxp-asset": {
+            "enabled": false
+        }
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "yii\\composer\\Installer::postInstall"
+        ],
+        "post-create-project-cmd": [
+            "yii\\composer\\Installer::postCreateProject",
+            "yii\\composer\\Installer::postInstall"
+        ]
+    },
+    "extra": {
+        "yii\\composer\\Installer::postCreateProject": {
+            "setPermission": [
+                {
+                    "runtime": "0777",
+                    "web/assets": "0777",
+                    "yii": "0755"
+                }
+            ]
+        },
+        "yii\\composer\\Installer::postInstall": {
+            "generateCookieValidationKey": [
+                "config/web.php"
+            ]
+        }
+    },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
+        }
     ]
-  }
 }
