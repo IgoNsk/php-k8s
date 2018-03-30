@@ -1,0 +1,19 @@
+version: '2'
+
+services:
+  pod:
+    image: gcr.io/google_containers/pause-amd64:3.0
+    ports:
+      - '80:80'
+    dns:
+      - 8.8.8.8
+
+  web:
+    build:
+      context: .
+      dockerfile: build/nginx/Dockerfile
+    network_mode: 'service:pod'
+    env_file:
+      - .env-base
+    volumes:
+      - ./public:/var/www/html
