@@ -9,10 +9,24 @@ services:
       - 8.8.8.8
 
   web:
-    image: docker-hub.2gis.ru/2gis-webapi/go-web:${IMAGE_VERSION}
+    image: ${WEB_IMAGE_PATH}:${IMAGE_VERSION}
     build:
       context: .
       dockerfile: build/nginx/Dockerfile
     network_mode: 'service:pod'
+    env_file:
+      - .env-base
+
+  app:
+    image: ${APP_IMAGE_PATH}:${IMAGE_VERSION}
+    build:
+      context: .
+      dockerfile: build/php/Dockerfile
+      args:
+        - BASE_IMAGE_VERSION=${APP_BASE_IMAGE_VERSION}
+    network_mode: 'service:pod'
+    volumes:
+      - ./build/utils/dockerize-linux-amd64-v0.6.0:/usr/local/bin/dockerize
+      - /tmp
     env_file:
       - .env-base
