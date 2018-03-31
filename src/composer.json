@@ -15,7 +15,13 @@
         "php": ">=5.4.0",
         "yiisoft/yii2": "~2.0.14",
         "yiisoft/yii2-bootstrap": "~2.0.0",
-        "yiisoft/yii2-swiftmailer": "~2.0.0"
+        "yiisoft/yii2-swiftmailer": "~2.0.0",
+        "yiisoft/yii2-redis": "2.0.8",
+        "graylog2/gelf-php": "^1.5",
+        "codemix/yii2-streamlog": "^1.2",
+        "psr/log": "^1.0",
+        "cbednarski/Pulse": "1.0.*",
+        "kohkimakimoto/workerphp": "^0.6.0"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.0.0",

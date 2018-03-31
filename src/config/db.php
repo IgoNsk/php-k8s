@@ -2,13 +2,13 @@
 
 return [
     'class' => 'yii\db\Connection',
-    'dsn' => 'mysql:host=localhost;dbname=yii2basic',
-    'username' => 'root',
-    'password' => '',
-    'charset' => 'utf8',
-
-    // Schema cache options (for production environment)
-    //'enableSchemaCache' => true,
-    //'schemaCacheDuration' => 60,
-    //'schemaCache' => 'cache',
+    'dsn' => getenv('APP_DATABASE'),
+    'enableSchemaCache' => !YII_DEBUG,
+    'emulatePrepare' => true,
+    'attributes' => [
+        /**
+         * @see http://php.net/manual/ru/features.persistent-connections.php
+         */
+        PDO::ATTR_PERSISTENT => false,
+    ],
 ];

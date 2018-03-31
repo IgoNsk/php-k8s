@@ -8,13 +8,14 @@
  * @license http://www.yiiframework.com/license/
  */
 
-defined('YII_DEBUG') or define('YII_DEBUG', true);
-defined('YII_ENV') or define('YII_ENV', 'dev');
+// comment out the following two lines when deployed to production
+getenv('YII_DEBUG') ? define('YII_DEBUG', (bool)getenv('YII_DEBUG')) : define('YII_DEBUG', false);
+getenv('YII_ENV') ? define('YII_ENV', (bool)getenv('YII_ENV')) :  define('YII_ENV', 'prod');
 
-require __DIR__ . '/vendor/autoload.php';
-require __DIR__ . '/vendor/yiisoft/yii2/Yii.php';
+require __DIR__ . 'vendor/autoload.php';
+require __DIR__ . 'vendor/yiisoft/yii2/Yii.php';
 
-$config = require __DIR__ . '/config/console.php';
+$config = require __DIR__ . 'config/console.php';
 
 $application = new yii\console\Application($config);
 $exitCode = $application->run();
