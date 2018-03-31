@@ -1,0 +1,73 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: app-redis
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "9121"
+        prometheus.io/scrape: "true"
+      labels:
+        app: app-redis
+    spec:
+      nodeSelector:
+        role: worker
+      containers:
+      - name: app-redis
+        image: redis:3.2.10-alpine
+        command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
+        volumeMounts:
+          - mountPath: /usr/local/etc/redis/
+            name: config
+        ports:
+        - containerPort: 6379
+          protocol: TCP
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 5"]
+        readinessProbe:
+          exec:
+            command: ["redis-cli", "ping"]
+          failureThreshold: 1
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 5
+        resources:
+          limits:
+            cpu: 512m
+            memory: 1280M
+          requests:
+            cpu: 75m
+            memory: 512M
+      - name: app-redis-exporter
+        image: oliver006/redis_exporter:v0.12
+        livenessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          successThreshold: 1
+          tcpSocket:
+            port: 9121
+          timeoutSeconds: 10
+        resources:
+          limits:
+            cpu: 200m
+            memory: 128M
+          requests:
+            cpu: 100m
+            memory: 64M
+        ports:
+        - containerPort: 9121
+          protocol: TCP
+      volumes:
+        - name: config
+          configMap:
+            name: app-redis-config
+            items:
+            - key: redis-config
+              path: redis.conf

@@ -45,3 +45,22 @@ services:
       - xhprof-data:/tmp
     ports:
       - '8081:8081'
+
+  db:
+    extends:
+      file: docker-compose.yml
+      service: db
+    command: >
+      postgres
+        -c log_statement=all
+        -c listen_addresses=*
+        -c hba_file=/pg_hba.conf
+    ports:
+      - '15432:5432'
+
+  cache:
+    extends:
+      file: docker-compose.yml
+      service: cache
+    ports:
+      - '16379:6379'

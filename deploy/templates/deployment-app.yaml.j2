@@ -1,0 +1,82 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  {% if abtesting %}
+  name: {{ app_name }}-abtesting
+  {% else %}
+  name: {{ app_name }}
+  {% endif %}
+spec:
+  replicas: {{ replicas_count }}
+  revisionHistoryLimit: {{ revision_history_limit }}
+  strategy:
+    rollingUpdate:
+      maxUnavailable: {{ max_unavailable | default('1') }}
+      maxSurge: {{ max_surge | default('1') }}
+  template:
+    metadata:
+      labels:
+        app: {{ app_name }}  {# Будем маркировать приложение вот этим лейблом, для того чтобы потом инстансы мог найти сервис #}
+        abtesting: "{{ abtesting | default('False') }}"
+    spec:
+      terminationGracePeriodSeconds: {{ termination_grace_period_seconds | default('60') }}  {# Секунды между SIGTERM и SIGKILL #}
+      nodeSelector: {# Выбираем ноду с конкретным label, на котором будут располагаться наши контейнеры #}
+        role: {{ node_role | default('worker') }}
+      containers: {# Описание контейнеров в поде https://kubernetes.io/docs/user-guide/pods/ #}
+      - name: {{ app_name }}-web
+        image: "{{ image_registry_path }}/{{ image_namespace }}/{{ image_nginx }}:{{ image_version }}"
+        ports:
+        - containerPort: 80
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 5"]
+        readinessProbe:  {# Условие при котором пропишут или уберут конкретный контейнер из upstream #}
+          httpGet:
+            path: /healthcheck/readiness
+            port: 80
+          initialDelaySeconds: 10
+          timeoutSeconds: 5
+        resources:
+          requests:
+            cpu: 75m
+            memory: 40M
+          limits:
+            cpu: 256m
+            memory: 80M
+      - name: {{ app_name }}-app
+        image: "{{ image_registry_path }}/{{ image_namespace }}/{{ image_php }}:{{ image_version }}"
+        volumeMounts:
+        - mountPath: /etc/resolv.conf
+          name: resolv-conf
+          subPath: resolv.conf
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 5"]
+        resources:
+          limits:
+            cpu: {{ limits_cpu }}
+            memory: {{ limits_memory }}
+          requests:
+            cpu: {{ requests_cpu }}
+            memory: {{ requests_memory }}
+        env:
+{% include "env.yaml.j2" with context %}
+      - name: {{ app_name }}-dns-cache
+        image: "{{ image_registry_path }}/{{ image_namespace }}/{{ image_dns }}:{{ image_version }}"
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 5"]
+        resources:
+          requests:
+            cpu: 100m
+            memory: 32M
+          limits:
+            cpu: 200m
+            memory: 64M
+      volumes:
+      - name: resolv-conf
+        configMap:
+          name: {{ app_name }}-resolvconf

@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ app_name }}-resolvconf
+data:
+  resolv.conf: |
+    search {{ k8s_namespace }}.svc.{{ dns_cache_base }} svc.{{ dns_cache_base }} {{ dns_cache_base }}
+    nameserver 127.0.0.1
+    options ndots:5

@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Service {# https://kubernetes.io/docs/user-guide/services/ #}
+metadata:
+  name: {{ app_name }}
+  annotations:
+    router.deis.io/domains: "{{ app_name }}{% if app_domains %}, {{ app_domains }}{% endif %}"  {# Имя домена приложения, будет доступно по {{ app_name }}.web-staging.2gis.ru или {{ app_name }}.api.2gis.ru #}
+    router.deis.io/maintenance: "{{ maintenance | default('False') }}"  {# Если True, то http ответы будут 503 #}
+    router.deis.io/ssl.enforce: "{{ ssl_enforce | default('False') }}"  {# Если True, будет редирект с http на https на уровне роутера #}
+    router.deis.io/ssl.redirectCode: "307"
+    {% if domains_secret_crt %} {# Связываем сертификаты с доменами https://github.com/deis/router#ssl #}
+    router.deis.io/certificates: "{{ domains_secret_crt }}" # пример есть в сообщении выше
+    {% endif %}
+    prometheus.io/probe: "true" {# Контролировать, что сервис отдаёт 200 #}
+    prometheus.io/probe-path: "/healthcheck/external" {# По какому пути ожидать 200 #}
+  labels:
+    router.deis.io/routable: "{{ routable | default("true") }}"  {# Если false, по имени приложения снаружи будет 404, но внутри кластера приложение будет нормально роутится по имени {{ app_name }}.{{ namespace }} #}
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80  {# Порт который торчит наружу, по этому порту ваш сервис(!) будет доступен в кластере #}
+      targetPort: {{ service_target_port | default('80') }}  {# Порт пода(контейнера), на какой порт стучатся в контейнер #}
+  selector:
+    app: {{ app_name }} {# В deployment указывали labels, вот по этим labels сервис и найдёт наши контейнеры (pods) #}

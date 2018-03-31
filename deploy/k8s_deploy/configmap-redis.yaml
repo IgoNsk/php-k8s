@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-redis-config
+data:
+  redis-config: |
+    logfile ""
+    save ""
+    databases 1
+    maxmemory 1024mb
+    maxmemory-policy volatile-lru
+    timeout 600
+    tcp-keepalive 60

@@ -43,11 +43,14 @@ ENV COMPOSER_PROCESS_TIMEOUT 1800
 ## Install composer to /usr/bin
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
 
+### Для ускорения работы composer
+RUN composer global require hirak/prestissimo
+
 COPY ./src/composer.json composer.json
-COPY ./src/composer.lock composer.lock
+#COPY ./src/composer.lock composer.lock
 # Install dependencies from composer
 # Bug: if `composer.json` not found - docker build will be failed
-RUN composer install --optimize-autoloader --no-interaction
+RUN composer install --optimize-autoloader --no-interaction -vvv
 
 RUN mkdir -p /tmp && chown -R www-data:www-data /tmp
 

@@ -1,0 +1,52 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: app-migration
+spec:
+  parallelism: 1
+  template:
+    metadata:
+      labels:
+        app: app-migration
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        role: worker
+      containers:
+      - name: app-migration
+        image: "registry.hub.docker.com/igonsk/app-api:master-ad7b6fa177722364f4b16644c6a5d1a07048f8a9"
+        imagePullPolicy: Always
+        command: ["php", "yii", "migrate", "--interactive=0"]
+        resources:
+          limits:
+            cpu: 128m
+            memory: 128Mi
+          requests:
+            cpu: 75m
+            memory: 32Mi
+        env:
+        - name: YII_DEBUG
+          value: "0"
+        - name: YII_ENV
+          value: prod
+        - name: APP_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: app-migration-secret
+              key: app_db_dsn
+        - name: APP_LOG_LEVELS
+          value: "error,warning"
+        - name: APP_LOG_TARGET
+          value: "stdout"
+        - name: APP_GELF_HOST
+          value: "logstash.local"
+        - name: APP_GELF_PORT
+          value: "12201"
+        - name: APP_GELF_TAGS
+          value: "k8s-logs"
+        - name: APP_GELF_LOGSTASH_PREFIX
+          value: "staging"
+        - name: APP_GELF_NAMESPACE
+          value: "dream-team"
+        - name: APP_REDIS_HOSTNAME
+          value: "app-redis.dream-team"

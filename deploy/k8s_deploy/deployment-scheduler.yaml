@@ -1,0 +1,54 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: php-k8s-scheduler
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: php-k8s-scheduler
+    spec:
+      terminationGracePeriodSeconds: 30
+      nodeSelector:
+        role: worker
+      containers:
+      - name: php-fpm
+        image: "registry.hub.docker.com/igonsk/app-api:master-ad7b6fa177722364f4b16644c6a5d1a07048f8a9"
+        command: ["php", "scheduler.php"]
+        resources:
+          requests:
+            cpu: 75m
+            memory: 128M
+          limits:
+            cpu: 1000m
+            memory: 256M
+        env:
+        - name: YII_DEBUG
+          value: "0"
+        - name: YII_ENV
+          value: prod
+        - name: APP_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: php-k8s-secret
+              key: app_db_dsn
+        - name: APP_LOG_LEVELS
+          value: "error,warning"
+        - name: APP_LOG_TARGET
+          value: "logstash"
+        - name: APP_GELF_HOST
+          value: "logstash.local"
+        - name: APP_GELF_PORT
+          value: "12201"
+        - name: APP_GELF_TAGS
+          value: "k8s-logs"
+        - name: APP_GELF_LOGSTASH_PREFIX
+          value: "staging"
+        - name: APP_GELF_NAMESPACE
+          value: "dream-team"
+        - name: APP_REDIS_HOSTNAME
+          value: "app-redis.dream-team"

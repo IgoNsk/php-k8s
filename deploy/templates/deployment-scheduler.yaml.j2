@@ -1,0 +1,30 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ app_name }}-scheduler
+spec:
+  replicas: 1
+  revisionHistoryLimit: {{ revision_history_limit | default('3') }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: {{ app_name }}-scheduler
+    spec:
+      terminationGracePeriodSeconds: {{ termination_grace_period_seconds | default('30') }}
+      nodeSelector:
+        role: {{ node_role | default('worker') }}
+      containers:
+      - name: php-fpm
+        image: "{{ image_registry_path }}/{{ image_namespace }}/{{ image_php }}:{{ image_version }}"
+        command: ["php", "scheduler.php"]
+        resources:
+          requests:
+            cpu: 75m
+            memory: 128M
+          limits:
+            cpu: 1000m
+            memory: 256M
+        env:
+{% include "env.yaml.j2" with context %}

@@ -31,3 +31,27 @@ services:
       - /tmp
     env_file:
       - .env-base
+
+  db:
+    image: postgres:9.6.8-alpine
+    environment:
+      - TZ=Asia/Novosibirsk
+    command: >
+      postgres
+        -c listen_addresses=*
+        -c hba_file=/pg_hba.conf
+    volumes:
+      - ./build/postgresql/pg_hba.conf:/pg_hba.conf
+
+  cache:
+    image: redis:3.2.10-alpine
+    ports:
+      - '6379'
+
+  dns-cache:
+    image: ${DNS_IMAGE_PATH}:${IMAGE_VERSION}
+    build:
+      context: build/dns-cache
+      dockerfile: ./Dockerfile
+    ports:
+      - "5053:53/udp"

@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: php-k8s-resolvconf
+data:
+  resolv.conf: |
+    search dream-team.svc.dns.k8s.local svc.dns.k8s.local dns.k8s.local
+    nameserver 127.0.0.1
+    options ndots:5

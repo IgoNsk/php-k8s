@@ -1,0 +1,73 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ app_name }}
+spec:
+  replicas: 1
+  revisionHistoryLimit: {{ revision_history_limit }}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "9121"
+        prometheus.io/scrape: "true"
+      labels:
+        app: {{ app_name }}
+    spec:
+      nodeSelector:
+        role: {{ node_role | default('worker') }}
+      containers:
+      - name: {{ app_name }}
+        image: redis:{{ image_version }}
+        command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
+        volumeMounts:
+          - mountPath: /usr/local/etc/redis/
+            name: config
+        ports:
+        - containerPort: 6379
+          protocol: TCP
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 5"]
+        readinessProbe:
+          exec:
+            command: ["redis-cli", "ping"]
+          failureThreshold: 1
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 5
+        resources:
+          limits:
+            cpu: {{ limits_cpu }}
+            memory: {{ limits_memory }}
+          requests:
+            cpu: {{ requests_cpu }}
+            memory: {{ requests_memory }}
+      - name: {{ app_name }}-exporter
+        image: oliver006/redis_exporter:v0.12
+        livenessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          successThreshold: 1
+          tcpSocket:
+            port: 9121
+          timeoutSeconds: 10
+        resources:
+          limits:
+            cpu: 200m
+            memory: 128M
+          requests:
+            cpu: 100m
+            memory: 64M
+        ports:
+        - containerPort: 9121
+          protocol: TCP
+      volumes:
+        - name: config
+          configMap:
+            name: {{ app_name }}-config
+            items:
+            - key: redis-config
+              path: redis.conf

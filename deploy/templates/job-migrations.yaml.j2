@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ app_name }}
+spec:
+  parallelism: 1
+  template:
+    metadata:
+      labels:
+        app: {{ app_name }}
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        role: worker
+      containers:
+      - name: {{ app_name }}
+        image: "{{ image_registry_path }}/{{ image_namespace }}/{{ image_php }}:{{ image_version }}"
+        imagePullPolicy: Always
+        command: ["php", "yii", "migrate", "--interactive=0"]
+        resources:
+          limits:
+            cpu: {{ limits_cpu }}
+            memory: {{ limits_memory }}
+          requests:
+            cpu: {{ requests_cpu }}
+            memory: {{ requests_memory }}
+        env:
+{% include "env.yaml.j2" with context %}

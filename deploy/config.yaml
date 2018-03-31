@@ -1,0 +1,94 @@
+common:
+  #k8s
+  k8s_master_uri: "xxx"
+  k8s_token: "xxx"
+  k8s_ca_base64: "xxx"
+  k8s_namespace: dream-team
+
+  image_registry_path: registry.hub.docker.com
+  image_namespace: igonsk
+  image_nginx: app-web
+  image_php: app-api
+  image_dns: dns-cache
+  image_version: "{{ env='IMAGE_VERSION' }}"
+
+  # envs
+  app_name: php-k8s
+  app_domains: ""
+  requests_cpu: 100m
+  requests_memory: 512Mi
+  limits_cpu: 2048m
+  limits_memory: 768Mi
+  replicas_count: 1
+  revision_history_limit: 3
+  ssl_enforce: true
+  abtesting: false
+
+  dns_cache_base: dns.k8s.local
+  domains_secret_crt: ""
+
+  app_db_dsn: "{{ env='AUTH2_DB_DSN' }}"
+
+  app_log_target: logstash
+  app_log_levels: error,warning
+  app_gelf_host: 'logstash.local'
+  app_gelf_logstash_prefix: "staging"
+
+  app_redis_hostname: app-redis.dream-team
+
+app-migrations:
+  app_name: app-migration
+  app_log_target: stdout
+  requests_cpu: 75m
+  requests_memory: 32Mi
+  limits_cpu: 128m
+  limits_memory: 128Mi
+  kubectl:
+  - template: secret-migrations.yaml.j2
+  - template: job-migrations.yaml.j2
+
+app-staging:
+  max_unavailable: 0
+  ssl_enforce: False
+
+  kubectl:
+  - template: secret-app.yaml.j2
+  - template: configmap-dns-cache.yaml.j2
+  - template: deployment-app.yaml.j2
+  - template: service-app.yaml.j2
+  - template: deployment-scheduler.yaml.j2 # Should be only in one DC
+
+app-perf:
+  app_name: app-perf
+  max_unavailable: 0
+  node_role: "worker.perf"
+
+  app_redis_hostname: app-redis-perf.dream-team
+
+  kubectl:
+  - template: configmap-web.yaml.j2
+  - template: secret-app.yaml.j2
+  - template: configmap-dns-cache.yaml.j2
+  - template: deployment-app.yaml.j2
+  - template: service-app.yaml.j2
+
+redis: &redis-base
+  app_name: app-redis
+  max_unavailable: 0
+  max_surge: 1
+  image_version: 3.2.10-alpine
+  limits_cpu: 512m
+  limits_memory: 1280M
+  requests_cpu: 75m
+  requests_memory: 512M
+  redis_maxmemory: 1024mb
+
+  kubectl:
+  - template: configmap-redis.yaml.j2
+  - template: deployment-redis.yaml.j2
+  - template: service-redis.yaml.j2
+
+redis-perf:
+  <<: *redis-base
+  app_name: app-redis-perf
+  node_role: "worker.perf"
